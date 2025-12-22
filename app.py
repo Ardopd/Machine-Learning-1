@@ -84,7 +84,7 @@ else:
     
     df_lab = df_master.copy()
     
-    # Preprocessing
+    # Preprocessing (Log Transform + Scaling)
     num_cols = ['jarak_sd_terdekat', 'jumlah_fasilitas_olahraga', 
                 'jumlah_alat_teknologi_tepat_guna_perikanan', 
                 'jumlah_alat_teknologi_tepat_guna_peternakan', 
@@ -96,61 +96,51 @@ else:
     
     X_scaled = scaler_fixed.transform(df_log[feature_order])
     
-    # K-Means
+    # Menjalankan K-Means baru
     kmeans_new = KMeans(n_clusters=k_custom, init='k-means++', random_state=42, n_init=10)
     df_lab['new_cluster'] = kmeans_new.fit_predict(X_scaled)
 
-    # Logika Pemetaan Label
+    # --- LOGIKA PEMETAAN LABEL DESKRIPTIF ---
+    # 1. Hitung skor rata-rata per klaster (semakin tinggi fiturnya, semakin bagus desanya)
+    # Khusus 'jarak_sd_terdekat', biasanya semakin kecil semakin bagus, namun kita gunakan rata-rata fitur lainnya sebagai penentu utama
     stats = df_lab.groupby('new_cluster')[feature_order].mean().mean(axis=1)
-    rank = stats.sort_values(ascending=False).index 
+    rank = stats.sort_values(ascending=False).index # Klaster terbaik di atas
     
+    # 2. Siapkan label
     base_labels = ["Mandiri", "Maju", "Berkembang", "Tertinggal", "Sangat Tertinggal"]
     if k_custom > 5:
         base_labels += [f"Cluster Extra {i+1}" for i in range(k_custom - 5)]
     
+    # 3. Buat dictionary mapping
     mapping = {cluster_id: base_labels[i] for i, cluster_id in enumerate(rank)}
     df_lab['new_label'] = df_lab['new_cluster'].map(mapping)
 
     st.divider()
 
     # Visualisasi PCA
-    col_pca, col_info = st.columns([2, 1])
+    st.subheader(f"🎯 Visualisasi PCA & Centroid (k={k_custom})")
+    pca = PCA(n_components=2)
+    pca_data = pca.fit_transform(X_scaled)
+    pca_centroids = pca.transform(kmeans_new.cluster_centers_)
     
-    with col_pca:
-        st.subheader(f"🎯 Visualisasi PCA & Centroid (k={k_custom})")
-        pca = PCA(n_components=2)
-        pca_data = pca.fit_transform(X_scaled)
-        pca_centroids = pca.transform(kmeans_new.cluster_centers_)
-        
-        fig_pca = go.Figure()
-        fig_pca.add_trace(go.Scatter(
-            x=pca_data[:, 0], y=pca_data[:, 1], mode='markers',
-            marker=dict(color=df_lab['new_cluster'], colorscale='Viridis', size=6, opacity=0.6),
-            text=df_lab['bps_nama_desa_kelurahan'] + " (" + df_lab['new_label'] + ")",
-            name='Data Desa'
-        ))
-        fig_pca.add_trace(go.Scatter(
-            x=pca_centroids[:, 0], y=pca_centroids[:, 1], mode='markers',
-            marker=dict(color='red', size=12, symbol='x', line=dict(width=2, color='white')),
-            name='Centroid'
-        ))
-        fig_pca.update_layout(xaxis_title="Principal Component 1", yaxis_title="Principal Component 2", 
-                              template="plotly_white", height=500)
-        st.plotly_chart(fig_pca, use_container_width=True)
+    fig_pca = go.Figure()
+    # Titik data desa
+    fig_pca.add_trace(go.Scatter(
+        x=pca_data[:, 0], y=pca_data[:, 1], mode='markers',
+        marker=dict(color=df_lab['new_cluster'], colorscale='Viridis', size=6, opacity=0.6),
+        text=df_lab['bps_nama_desa_kelurahan'] + " (" + df_lab['new_label'] + ")",
+        name='Data Desa'
+    ))
+    # Titik Centroid
+    fig_pca.add_trace(go.Scatter(
+        x=pca_centroids[:, 0], y=pca_centroids[:, 1], mode='markers',
+        marker=dict(color='red', size=12, symbol='x', line=dict(width=2, color='white')),
+        name='Centroid'
+    ))
+    fig_pca.update_layout(xaxis_title="PC1", yaxis_title="PC2", template="plotly_white", height=500)
+    st.plotly_chart(fig_pca, use_container_width=True)
 
-    with col_info:
-        st.subheader("💡 Keterangan PCA")
-        st.write("""
-        **Apa itu PCA?**
-        PCA merangkum 8 variabel desa menjadi 2 komponen utama (PC1 & PC2) agar bisa dilihat dalam grafik 2D.
-        
-        **Cara Membaca:**
-        - **Titik Berwarna:** Mewakili satu desa. Desa dengan warna sama berada dalam kelompok (cluster) yang sama.
-        - **Tanda Silang Merah (Centroid):** Titik pusat atau 'rata-rata' karakteristik dari kelompok tersebut.
-        - **Jarak:** Semakin dekat dua titik, semakin mirip karakteristik infrastruktur desa tersebut.
-        """)
-
-    # Histogram Sebaran
+    # Histogram Sebaran Wilayah Baru
     st.subheader(f"🗺️ Sebaran Wilayah Berdasarkan k={k_custom}")
     fig_bar_lab = px.histogram(df_lab, x="bps_nama_kabupaten_kota", color="new_label", barmode="stack",
                                color_discrete_map=COLOR_MAP,
@@ -164,7 +154,7 @@ else:
     )
     st.dataframe(profile.style.highlight_max(axis=0, color='#d4edda').highlight_min(axis=0, color='#f8d7da'), use_container_width=True)
 
-# Footer
+# Footer Detail Data
 st.divider()
 with st.expander("📋 Lihat Data Detail"):
     st.dataframe(df_master if menu == "🏠 Dashboard Utama (Fixed k=5)" else df_lab)
