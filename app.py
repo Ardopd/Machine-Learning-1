@@ -26,7 +26,7 @@ st.sidebar.title("🧭 Navigasi")
 menu = st.sidebar.radio("Pilih Halaman:", ["🏠 Dashboard Utama (Fixed k=5)", "🧪 Lab Dinamis (Custom k)"])
 
 feature_order = [
-    'jarak_sekolah_terdekat', 'bumdes_score', 'jumlah_fasilitas_olahraga', 
+    'jarak_sd_terdekat', 'bumdes_score', 'jumlah_fasilitas_olahraga', 
     'sinyal_score', 'jumlah_alat_teknologi_tepat_guna_perikanan', 
     'jumlah_alat_teknologi_tepat_guna_peternakan', 'sampah_score', 
     'jumlah_tenaga_kesehatan_lainnya'
@@ -68,7 +68,7 @@ else:
     k_custom = st.slider("Pilih Jumlah Klaster (k):", min_value=2, max_value=10, value=5)
     
     df_lab = df_master.copy()
-    num_cols = ['jarak_sekolah_terdekat', 'jumlah_fasilitas_olahraga', 
+    num_cols = ['jarak_sd_terdekat', 'jumlah_fasilitas_olahraga', 
                 'jumlah_alat_teknologi_tepat_guna_perikanan', 
                 'jumlah_alat_teknologi_tepat_guna_peternakan', 
                 'jumlah_tenaga_kesehatan_lainnya']
@@ -129,4 +129,5 @@ else:
 st.divider()
 with st.expander("📋 Lihat Data Detail"):
     st.dataframe(df_master if menu == "🏠 Dashboard Utama (Fixed k=5)" else df_lab)
+
 
