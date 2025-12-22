@@ -73,7 +73,7 @@ if model and df_raw is not None:
     df_raw['bumdes_score'] = df_raw['keberadaan_bumdesa_keuangan_program_usaha_ekonomi_desa'].apply(lambda x: 1 if x == 'ADA' else 0)
     df_raw['sampah_score'] = df_raw['ketersediaan_tempat_pembuangan_sampah'].apply(lambda x: 1 if x == 'ADA' else 0)
     
-    features = ['jarak_sd_terdekat', 'bumdes_score', 'jumlah_fasilitas_olahraga', 'sinyal_score', 
+    features = ['jarak_sekolah_terdekat', 'bumdes_score', 'jumlah_fasilitas_olahraga', 'sinyal_score', 
                 'jumlah_alat_teknologi_tepat_guna_perikanan', 'jumlah_alat_teknologi_tepat_guna_peternakan', 
                 'sampah_score', 'jumlah_tenaga_kesehatan_lainnya']
     
@@ -113,3 +113,4 @@ if model and df_raw is not None:
     except Exception as e:
 
         st.error(f"Gagal melakukan prediksi klaster: {e}")
+
