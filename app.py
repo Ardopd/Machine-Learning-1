@@ -40,7 +40,7 @@ def load_data():
         
         key_cols = ['bps_kode_desa_kelurahan', 'tahun']
         
-        df = dfs['sekolah'][['bps_kode_desa_kelurahan', 'bps_nama_kabupaten_kota', 'bps_nama_desa_kelurahan', 'tahun', 'jarak_sd_terdekat']]
+        df = dfs['sekolah'][['bps_kode_desa_kelurahan', 'bps_nama_kabupaten_kota', 'bps_nama_desa_kelurahan', 'tahun', 'jarak_sekolah_terdekat']]
         
         merge_map = {
             'ekonomi': 'keberadaan_bumdesa_keuangan_program_usaha_ekonomi_desa',
@@ -111,4 +111,5 @@ if model and df_raw is not None:
             st.dataframe(df_raw[['bps_nama_kabupaten_kota', 'bps_nama_desa_kelurahan', 'status_desa'] + features])
 
     except Exception as e:
+
         st.error(f"Gagal melakukan prediksi klaster: {e}")
