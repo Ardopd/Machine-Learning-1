@@ -33,7 +33,7 @@ feature_order = [
 ]
 
 if menu == "🏠 Dashboard Utama (Fixed k=5)":
-    st.title("🏛️ Cluster Pemetaan Status Desa Di Jawa Barat Menggunakan Metode K-Means")
+    st.title("🏛️ Dashboard Analisis Status Desa")
     kab_list = ["Semua Kabupaten"] + sorted(df_master['bps_nama_kabupaten_kota'].unique().tolist())
     selected_kab = st.sidebar.selectbox("Pilih Wilayah:", kab_list)
     df_filtered = df_master if selected_kab == "Semua Kabupaten" else df_master[df_master['bps_nama_kabupaten_kota'] == selected_kab]
@@ -129,6 +129,3 @@ else:
 st.divider()
 with st.expander("📋 Lihat Data Detail"):
     st.dataframe(df_master if menu == "🏠 Dashboard Utama (Fixed k=5)" else df_lab)
-
-
-
